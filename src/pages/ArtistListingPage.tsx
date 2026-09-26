@@ -8,7 +8,6 @@ import {
   RefreshCw,
   RotateCcw,
   Sparkles,
-  Users,
 } from 'lucide-react';
 import { ArtistCard } from '../components/artists/ArtistCard';
 import { ArtistFilters } from '../components/artists/ArtistFilters';
@@ -395,7 +394,7 @@ export const ArtistListingPage: React.FC = () => {
       <HomeShowcaseSections />
 
       {/* Evaluator Helper Bar at bottom of page */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200/70 dark:border-slate-800/70 bg-slate-100/60 dark:bg-slate-900/40 px-4 py-3 text-xs text-slate-500 dark:text-slate-400">
+      {/* <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200/70 dark:border-slate-800/70 bg-slate-100/60 dark:bg-slate-900/40 px-4 py-3 text-xs text-slate-500 dark:text-slate-400">
         <span className="flex items-center gap-2">
           <Users className="h-4 w-4 text-rose-500" />
           <span>
@@ -409,7 +408,7 @@ export const ArtistListingPage: React.FC = () => {
         >
           Test Catalog API Error State
         </button>
-      </div>
+      </div> */}
     </div>
   );
 };
