@@ -16,9 +16,9 @@ export interface Step2ContactData {
   organization?: string;
 }
 
-export interface ValidationErrors<T> {
+export type ValidationErrors<T> = {
   [K in keyof T]?: string;
-}
+};
 
 /**
  * Validates Step 1 (Event Details) including live availability check.
