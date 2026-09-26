@@ -222,9 +222,8 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
       );
 
       setConfirmedBooking(created);
+      setStep(4);
       onBookingCreated?.(created);
-      onClose();
-      navigate(`/booking-success/${created.id}`);
     } catch (err) {
       setSubmitError(
         err instanceof Error
