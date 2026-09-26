@@ -58,7 +58,7 @@ export const Navbar: React.FC = () => {
             to="/"
             end
             className={({ isActive }) =>
-              `flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all ${
+              `flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-semibold transition-all ${
                 isActive || location.pathname.startsWith('/artists')
                   ? 'bg-rose-500/10 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400'
                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white'
@@ -69,10 +69,31 @@ export const Navbar: React.FC = () => {
             Discover Artists
           </NavLink>
 
+          <a
+            href="/#artist-gallery"
+            className="rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white transition-all"
+          >
+            Gallery
+          </a>
+
+          <a
+            href="/#client-reviews"
+            className="rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white transition-all"
+          >
+            Reviews
+          </a>
+
+          <a
+            href="/#event-blog"
+            className="rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white transition-all"
+          >
+            Blog
+          </a>
+
           <NavLink
             to="/bookings"
             className={({ isActive }) =>
-              `flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all ${
+              `flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-semibold transition-all ${
                 isActive
                   ? 'bg-rose-500/10 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400'
                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white'
