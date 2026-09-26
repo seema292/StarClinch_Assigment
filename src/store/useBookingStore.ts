@@ -151,8 +151,8 @@ export const useBookingStore = create<BookingStoreState>()(
         });
 
         try {
-          // Simulate async API call (900ms)
-          await delay(900);
+          // Smooth async save to LocalStorage (400ms)
+          await delay(400);
 
           if (options?.simulateNetworkError) {
             logAnalyticsEvent('booking_submit_error', {

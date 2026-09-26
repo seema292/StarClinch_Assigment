@@ -209,7 +209,7 @@ export const ArtistProfilePage: React.FC = () => {
         </span>
       </div>
 
-      {/* Live Toast Banner When a Booking Was Just Confirmed */}
+      {/* Live Toast Banner When a Booking Request Was Just Completed */}
       {recentConfirmedBooking && (
         <div
           role="status"
@@ -219,10 +219,10 @@ export const ArtistProfilePage: React.FC = () => {
             <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
             <div>
               <p className="font-bold">
-                Booking {recentConfirmedBooking.referenceCode} Confirmed &amp; Calendar Updated!
+                🎉 Your Booking Request ({recentConfirmedBooking.referenceCode}) is Done &amp; Saved in LocalStorage!
               </p>
               <p className="text-xs opacity-90">
-                Notice how <strong>{formatDisplayDate(recentConfirmedBooking.eventDate)}</strong> is now locked with a purple badge on the calendar below to prevent double-booking.
+                <strong>{formatDisplayDate(recentConfirmedBooking.eventDate)}</strong> is now locked on the calendar below, and once confirmed by {artist.name}, the confirmation message is sent to <strong>{recentConfirmedBooking.contact.email}</strong>.
               </p>
             </div>
           </div>
@@ -230,7 +230,7 @@ export const ArtistProfilePage: React.FC = () => {
             to="/bookings"
             className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-extrabold text-white hover:bg-emerald-500 transition-colors"
           >
-            Manage in My Bookings →
+            View in My Bookings →
           </Link>
         </div>
       )}

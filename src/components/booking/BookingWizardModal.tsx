@@ -7,6 +7,7 @@ import {
   Building2,
   Calendar,
   CheckCircle2,
+  Database,
   Loader2,
   Mail,
   MailCheck,
@@ -17,15 +18,21 @@ import {
   Sparkles,
   User,
   Users,
-  WifiOff,
   X,
 } from 'lucide-react';
 import { CITIES, EVENT_TYPES } from '../../data/artists';
 import { useBookingStore } from '../../store/useBookingStore';
 import { Artist, Booking, CityName, EventType } from '../../types';
 import { logAnalyticsEvent } from '../../utils/analytics';
-import { formatDisplayDate, formatFullDate, formatINR } from '../../utils/formatters';
-import { calculateDynamicPrice, EVENT_TYPE_MULTIPLIERS } from '../../utils/pricing';
+import {
+  formatDisplayDate,
+  formatFullDate,
+  formatINR,
+} from '../../utils/formatters';
+import {
+  calculateDynamicPrice,
+  EVENT_TYPE_MULTIPLIERS,
+} from '../../utils/pricing';
 import {
   Step1EventData,
   Step2ContactData,
@@ -61,8 +68,10 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
   const confirmBookingStatus = useBookingStore((s) => s.confirmBookingStatus);
   const isMutating = useBookingStore((s) => s.isMutating);
 
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(1); // Step 4 = Request Submitted Popup State
-  const [emailModalBooking, setEmailModalBooking] = useState<Booking | null>(null);
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  const [emailModalBooking, setEmailModalBooking] = useState<Booking | null>(
+    null
+  );
 
   // Step 1 State
   const [eventData, setEventData] = useState<Step1EventData>({
@@ -90,10 +99,11 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
     Partial<Record<keyof Step2ContactData, boolean>>
   >({});
 
-  // Step 3 Submission & Network Simulation State
-  const [simulateNetworkError, setSimulateNetworkError] = useState(false);
+  // Step 3 & Step 4 State
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [confirmedBooking, setConfirmedBooking] = useState<Booking | null>(null);
+  const [confirmedBooking, setConfirmedBooking] = useState<Booking | null>(
+    null
+  );
 
   // Sync props when modal opens
   useEffect(() => {
@@ -190,12 +200,8 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
     }
   };
 
-  const handleFinalSubmit = async (overrideSimulateError?: boolean) => {
+  const handleFinalSubmit = async () => {
     setSubmitError(null);
-    const shouldFail =
-      overrideSimulateError !== undefined
-        ? overrideSimulateError
-        : simulateNetworkError;
 
     try {
       const created = await createBooking(
@@ -208,7 +214,7 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
           venueNotes: eventData.venueNotes,
           contact: contactData,
         },
-        { simulateNetworkError: shouldFail }
+        { simulateNetworkError: false }
       );
 
       setConfirmedBooking(created);
@@ -218,7 +224,7 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
       setSubmitError(
         err instanceof Error
           ? err.message
-          : 'An unexpected network error occurred. Please retry.'
+          : 'An unexpected error occurred. Please retry.'
       );
     }
   };
@@ -245,7 +251,7 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
                 className="font-display text-base sm:text-lg font-extrabold text-slate-900 dark:text-white"
               >
                 {step === 4
-                  ? 'Booking Request Submitted!'
+                  ? 'Your Booking Request is Done!'
                   : `Book ${artist.name}`}
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -329,7 +335,10 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
                       type="date"
                       value={eventData.eventDate}
                       onChange={(e) => {
-                        const next = { ...eventData, eventDate: e.target.value };
+                        const next = {
+                          ...eventData,
+                          eventDate: e.target.value,
+                        };
                         setEventData(next);
                         setStep1Errors(
                           validateEventDetails(
@@ -422,7 +431,8 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
                     htmlFor="booking-audience-size"
                     className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5"
                   >
-                    Expected Audience Size <span className="text-rose-500">*</span>
+                    Expected Audience Size{' '}
+                    <span className="text-rose-500">*</span>
                   </label>
                   <div className="relative">
                     <Users className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-purple-500" />
@@ -436,12 +446,17 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
                         const val = Number(e.target.value);
                         setEventData({ ...eventData, audienceSize: val });
                         if (step1Errors.audienceSize) {
-                          setStep1Errors({ ...step1Errors, audienceSize: undefined });
+                          setStep1Errors({
+                            ...step1Errors,
+                            audienceSize: undefined,
+                          });
                         }
                       }}
                       aria-invalid={Boolean(step1Errors.audienceSize)}
                       aria-describedby={
-                        step1Errors.audienceSize ? 'err-audience-size' : undefined
+                        step1Errors.audienceSize
+                          ? 'err-audience-size'
+                          : undefined
                       }
                       className="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 pl-10 pr-3 py-2.5 text-sm font-semibold text-slate-900 dark:text-white focus:border-rose-500 focus:outline-none"
                     />
@@ -483,7 +498,8 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
               <div className="flex items-center justify-between rounded-2xl bg-slate-100 dark:bg-slate-950 p-4 border border-slate-200 dark:border-slate-800">
                 <div>
                   <span className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                    Live Dynamic Estimate ({formatDisplayDate(eventData.eventDate)})
+                    Live Dynamic Estimate (
+                    {formatDisplayDate(eventData.eventDate)})
                   </span>
                   <span className="text-xs text-slate-600 dark:text-slate-300">
                     {livePriceBreakdown.dateTierLabel} • {eventData.eventType}
@@ -519,7 +535,9 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
           {step === 2 && (
             <form onSubmit={handleNextFromStep2} noValidate className="space-y-4">
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Enter your contact information to receive the booking contract and artist rider.
+                Enter your contact details. Once {artist.name} confirms your
+                booking request, the confirmation message will be sent to your
+                email ID.
               </p>
 
               {/* Full Name */}
@@ -621,7 +639,8 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
                     htmlFor="contact-phone"
                     className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5"
                   >
-                    Mobile Number (10-digit) <span className="text-rose-500">*</span>
+                    Mobile Number (10-digit){' '}
+                    <span className="text-rose-500">*</span>
                   </label>
                   <div className="relative">
                     <Phone className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -710,7 +729,7 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
           )}
 
           {/* ================================================================
-              STEP 3: REVIEW & CONFIRM (WITH SIMULATED NETWORK ERROR RETRY)
+              STEP 3: REVIEW & CONFIRM (SMOOTH LOCALSTORAGE SUBMISSION)
           ================================================================ */}
           {step === 3 && (
             <div className="space-y-5">
@@ -783,7 +802,8 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
                 </div>
                 <div className="flex justify-between">
                   <span>
-                    {eventData.eventType} ({livePriceBreakdown.eventTypeMultiplier}x)
+                    {eventData.eventType} (
+                    {livePriceBreakdown.eventTypeMultiplier}x)
                   </span>
                   <span className="font-semibold">
                     {livePriceBreakdown.eventTypeAdjustment >= 0
@@ -819,27 +839,18 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
                 </div>
               </div>
 
-              {/* Evaluator Network Failure Simulator Toggle */}
-              <div className="flex items-center justify-between rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-xs">
-                <label
-                  htmlFor="simulate-error-checkbox"
-                  className="flex items-center gap-2 font-semibold text-amber-800 dark:text-amber-300 cursor-pointer"
-                >
-                  <WifiOff className="h-4 w-4 text-amber-500 shrink-0" />
-                  <span>
-                    Simulate API Failure on Submit (Test Error &amp; Retry Handling)
-                  </span>
-                </label>
-                <input
-                  id="simulate-error-checkbox"
-                  type="checkbox"
-                  checked={simulateNetworkError}
-                  onChange={(e) => setSimulateNetworkError(e.target.checked)}
-                  className="h-4 w-4 rounded accent-rose-600 cursor-pointer"
-                />
+              {/* Reassuring LocalStorage & Email Notification Banner */}
+              <div className="flex items-center gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-800 dark:text-emerald-300">
+                <Database className="h-4 w-4 text-emerald-500 shrink-0" />
+                <span>
+                  Your booking will be saved instantly in{' '}
+                  <strong>LocalStorage</strong> and confirmation details will be
+                  sent to <strong>{contactData.email}</strong> once confirmed by{' '}
+                  {artist.name}.
+                </span>
               </div>
 
-              {/* Error State with Direct Retry Action */}
+              {/* Error State with Direct Retry Action (if date was already booked) */}
               {submitError && (
                 <div
                   role="alert"
@@ -848,7 +859,7 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
                   <div className="flex items-start gap-2.5 text-xs text-rose-700 dark:text-rose-300">
                     <AlertCircle className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" />
                     <div className="space-y-1">
-                      <p className="font-bold">Submission Failed</p>
+                      <p className="font-bold">Could Not Complete Booking</p>
                       <p>{submitError}</p>
                     </div>
                   </div>
@@ -857,14 +868,11 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
                     <button
                       type="button"
                       disabled={isMutating}
-                      onClick={() => {
-                        setSimulateNetworkError(false);
-                        handleFinalSubmit(false);
-                      }}
+                      onClick={() => handleFinalSubmit()}
                       className="inline-flex items-center gap-1.5 rounded-xl bg-rose-600 px-4 py-2 text-xs font-extrabold text-white shadow hover:bg-rose-500 transition-colors cursor-pointer disabled:opacity-50"
                     >
                       <RefreshCw className="h-3.5 w-3.5" />
-                      Retry Booking Now (Disable Error Simulation)
+                      Retry Booking
                     </button>
                   </div>
                 </div>
@@ -891,13 +899,14 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
                   {isMutating ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Locking Artist Calendar...</span>
+                      <span>Submitting Booking Request...</span>
                     </>
                   ) : (
                     <>
                       <ShieldCheck className="h-4 w-4" />
                       <span>
-                        Confirm &amp; Lock Date ({formatINR(livePriceBreakdown.totalPrice)})
+                        Confirm &amp; Submit Request (
+                        {formatINR(livePriceBreakdown.totalPrice)})
                       </span>
                     </>
                   )}
@@ -907,51 +916,51 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
           )}
 
           {/* ================================================================
-              STEP 4: POPUP MESSAGE — YOUR REQUEST IS SUBMITTED & EMAIL FLOW
+              STEP 4: POPUP MESSAGE — YOUR BOOKING REQUEST IS DONE!
           ================================================================ */}
           {step === 4 && confirmedBooking && (
             <div className="py-3 text-center space-y-5">
-              {/* Top Popup Alert Pill */}
+              {/* Prominent Popup Alert Banner */}
               <div
                 role="alert"
-                className="mx-auto max-w-lg rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-xs sm:text-sm font-bold text-emerald-700 dark:text-emerald-300 flex items-center justify-center gap-2 shadow-sm"
+                className="mx-auto max-w-lg rounded-2xl border-2 border-emerald-500 bg-emerald-500/15 px-5 py-4 text-sm sm:text-base font-extrabold text-emerald-700 dark:text-emerald-300 flex items-center justify-center gap-2.5 shadow-lg shadow-emerald-500/10"
               >
-                <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
-                <span>Popup Alert: Your Booking Request Has Been Submitted!</span>
+                <CheckCircle2 className="h-6 w-6 text-emerald-500 shrink-0" />
+                <span>🎉 Your Booking Request is Done &amp; Submitted!</span>
               </div>
 
               <div className="space-y-1.5">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-xs font-extrabold text-rose-500">
                   <Sparkles className="h-3.5 w-3.5" />
-                  Reference ID: {confirmedBooking.referenceCode}
+                  Saved in LocalStorage • Ref: {confirmedBooking.referenceCode}
                 </span>
                 <h3 className="font-display text-2xl font-extrabold text-slate-900 dark:text-white">
-                  Your Request is Submitted to {artist.name}!
+                  Request Sent to {artist.name}
                 </h3>
                 <p className="mx-auto max-w-md text-xs sm:text-sm text-slate-600 dark:text-slate-300">
                   We have locked{' '}
-                  <strong>{formatFullDate(confirmedBooking.eventDate)}</strong> on{' '}
-                  {artist.name}’s calendar and sent your request for artist
-                  confirmation.
+                  <strong>{formatFullDate(confirmedBooking.eventDate)}</strong>{' '}
+                  on {artist.name}’s availability calendar and stored your
+                  booking in <strong>My Bookings</strong>.
                 </p>
               </div>
 
-              {/* Email Notification Promise Box */}
-              <div className="mx-auto max-w-lg rounded-2xl border border-rose-500/30 bg-rose-500/5 p-4 text-left text-xs space-y-2">
+              {/* Email Notification Promise & Instant Simulation Box */}
+              <div className="mx-auto max-w-lg rounded-2xl border border-rose-500/30 bg-rose-500/5 p-4 text-left text-xs space-y-2.5">
                 <div className="flex items-start gap-2.5">
                   <MailCheck className="h-5 w-5 text-rose-500 shrink-0 mt-0.5" />
                   <div className="space-y-1">
                     <p className="font-extrabold text-slate-900 dark:text-white text-sm">
                       {confirmedBooking.status === 'Confirmed'
-                        ? `Artist Confirmed! Email Sent to ${confirmedBooking.contact.email}`
+                        ? `✓ Artist Confirmed! Email Sent to ${confirmedBooking.contact.email}`
                         : `Confirmation Email Will Be Sent to: ${confirmedBooking.contact.email}`}
                     </p>
                     <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
                       {confirmedBooking.status === 'Confirmed' ? (
                         <>
-                          <strong>{artist.name}</strong> has confirmed your booking
-                          request! A confirmation message with your full event
-                          details has been dispatched to{' '}
+                          <strong>{artist.name}</strong> has confirmed your
+                          booking request! A confirmation message has been sent
+                          to your email ID{' '}
                           <strong className="text-rose-500">
                             {confirmedBooking.contact.email}
                           </strong>
@@ -959,9 +968,9 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
                         </>
                       ) : (
                         <>
-                          Once <strong>{artist.name}</strong> confirms your booking
-                          request, you will immediately receive a confirmation
-                          message on your registered email ID:{' '}
+                          Once <strong>{artist.name}</strong> confirms your
+                          request, you will get a confirmation message on the
+                          email ID you filled during booking:{' '}
                           <strong className="text-rose-500">
                             {confirmedBooking.contact.email}
                           </strong>
@@ -973,7 +982,7 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
                 </div>
 
                 {/* Simulate Artist Confirming Right Now */}
-                <div className="pt-2 flex flex-wrap items-center gap-2">
+                <div className="pt-1 flex flex-wrap items-center gap-2">
                   {confirmedBooking.status === 'Pending' ? (
                     <button
                       type="button"
@@ -985,7 +994,7 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
                         setConfirmedBooking(updated);
                         setEmailModalBooking(updated);
                       }}
-                      className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-extrabold text-white shadow-md shadow-emerald-600/20 hover:bg-emerald-500 transition-colors cursor-pointer disabled:opacity-50"
+                      className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-extrabold text-white shadow-md shadow-emerald-600/20 hover:bg-emerald-500 transition-colors cursor-pointer disabled:opacity-50"
                     >
                       {isMutating ? (
                         <>
@@ -994,9 +1003,9 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
                         </>
                       ) : (
                         <>
-                          <MailCheck className="h-3.5 w-3.5" />
+                          <MailCheck className="h-4 w-4" />
                           <span>
-                            Simulate Artist Confirming Request → Send Email to{' '}
+                            Artist Confirm Now → Get Message on{' '}
                             {confirmedBooking.contact.email}
                           </span>
                         </>
@@ -1006,11 +1015,11 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
                     <button
                       type="button"
                       onClick={() => setEmailModalBooking(confirmedBooking)}
-                      className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-extrabold text-white shadow-md hover:bg-emerald-500 transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-extrabold text-white shadow-md hover:bg-emerald-500 transition-colors cursor-pointer"
                     >
-                      <MailCheck className="h-3.5 w-3.5" />
+                      <MailCheck className="h-4 w-4" />
                       <span>
-                        View Confirmation Message Sent to{' '}
+                        Open Email Message Sent to{' '}
                         {confirmedBooking.contact.email}
                       </span>
                     </button>
@@ -1021,7 +1030,7 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
               {/* Summary Card */}
               <div className="mx-auto max-w-lg rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-4 text-left text-xs space-y-1.5">
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Current Booking Status:</span>
+                  <span className="text-slate-500">Booking Status:</span>
                   <span
                     className={`font-extrabold ${
                       confirmedBooking.status === 'Confirmed'
@@ -1041,13 +1050,13 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Registered Email ID:</span>
+                  <span className="text-slate-500">Client Email ID:</span>
                   <span className="font-bold text-rose-500">
                     {confirmedBooking.contact.email}
                   </span>
                 </div>
                 <div className="flex justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5 font-extrabold text-slate-900 dark:text-white">
-                  <span>Estimated Total:</span>
+                  <span>Total Amount:</span>
                   <span className="text-rose-500">
                     {formatINR(confirmedBooking.priceBreakdown.totalPrice)}
                   </span>
@@ -1072,7 +1081,7 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
                   onClick={onClose}
                   className="inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-800 px-5 py-3 text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 >
-                  Inspect Updated Calendar
+                  Done &amp; Close
                 </button>
               </div>
             </div>
