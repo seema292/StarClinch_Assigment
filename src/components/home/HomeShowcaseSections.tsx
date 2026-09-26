@@ -283,19 +283,17 @@ const BLOG_POSTS: BlogPost[] = [
 
 export const HomeShowcaseSections: React.FC = () => {
   const [activeSlide, setActiveSlide] = useState<number>(0);
-  const [isPaused, setIsPaused] = useState<boolean>(false);
   const [activeBlog, setActiveBlog] = useState<BlogPost | null>(null);
 
   const totalSlides = FEATURED_TESTIMONIALS.length;
 
-  // Auto-play review slider every 4.5 seconds unless hovered
+  // Automatically advance the review slider every 3.2 seconds continuously
   useEffect(() => {
-    if (isPaused) return;
     const timer = window.setInterval(() => {
       setActiveSlide((prev) => (prev + 1) % totalSlides);
-    }, 4500);
+    }, 3200);
     return () => window.clearInterval(timer);
-  }, [isPaused, totalSlides]);
+  }, [totalSlides]);
 
   const handlePrevSlide = () => {
     setActiveSlide((prev) => (prev === 0 ? totalSlides - 1 : prev - 1));
@@ -305,14 +303,10 @@ export const HomeShowcaseSections: React.FC = () => {
     setActiveSlide((prev) => (prev + 1) % totalSlides);
   };
 
-  const currentReview = FEATURED_TESTIMONIALS[activeSlide];
-  const secondaryReview =
-    FEATURED_TESTIMONIALS[(activeSlide + 1) % totalSlides];
-
   return (
     <div className="space-y-20 pt-8">
       {/* ====================================================================
-          SECTION 1: CLEAN, ELEGANT ARTIST GALLERY (PICS + ARTIST NAME ONLY)
+          SECTION 1: CLEAN, ELEGANT ARTIST GALLERY WITH SUBTLE HOVER EFFECT
       ==================================================================== */}
       <section
         id="artist-gallery"
@@ -336,32 +330,33 @@ export const HomeShowcaseSections: React.FC = () => {
           </p>
         </div>
 
-        {/* Clean 4-Column Portrait Gallery — Pure Photography + Artist Name */}
+        {/* Clean 4-Column Portrait Gallery with Subtle Card Hover Effect */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {GALLERY_ARTISTS.map((item) => (
             <Link
               key={item.id}
               to={`/artists/${item.artistId}`}
-              className="relative block aspect-[4/5] w-full overflow-hidden rounded-3xl bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
+              className="group relative block aspect-[4/5] w-full overflow-hidden rounded-3xl bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-rose-500/60 hover:shadow-xl hover:shadow-rose-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
             >
               <img
                 src={item.imageUrl}
                 alt={item.artistName}
                 loading="lazy"
-                className="h-full w-full object-cover"
+                className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
               />
               {/* Clean Bottom Gradient Overlay for Name Readability */}
               <div className="
                 absolute inset-x-0 bottom-0 h-2/5
-                bg-gradient-to-t from-slate-950/95 via-slate-950/55 to-transparent
-                flex flex-col justify-end p-5
+                bg-gradient-to-t from-slate-950/95 via-slate-950/60 to-transparent
+                flex flex-col justify-end p-5 transition-all duration-300
               ">
-                <h3 className="font-display text-lg font-extrabold text-white tracking-tight">
+                <h3 className="font-display text-lg font-extrabold text-white tracking-tight transition-colors duration-300 group-hover:text-rose-300">
                   {item.artistName}
                 </h3>
-                <p className="text-xs font-medium text-rose-300 mt-0.5">
+                <p className="text-xs font-medium text-rose-300/90 group-hover:text-amber-300 transition-colors duration-300 mt-0.5">
                   {item.category}
                 </p>
+                <div className="mt-2 h-0.5 w-0 rounded-full bg-gradient-to-r from-rose-500 to-amber-400 transition-all duration-300 group-hover:w-12" />
               </div>
             </Link>
           ))}
@@ -369,13 +364,11 @@ export const HomeShowcaseSections: React.FC = () => {
       </section>
 
       {/* ====================================================================
-          SECTION 2: GRADIENT CLIENT REVIEWS SLIDER / CAROUSEL
+          SECTION 2: AUTOMATIC GRADIENT CLIENT REVIEWS SLIDER / CAROUSEL
       ==================================================================== */}
       <section
         id="client-reviews"
         aria-label="Verified Client Reviews Slider"
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
         className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-rose-950 via-slate-950 to-purple-950 p-6 sm:p-10 lg:p-12 text-white shadow-2xl border border-rose-500/25 scroll-mt-24"
       >
         {/* Decorative Ambient Gradient Glows */}
@@ -388,7 +381,7 @@ export const HomeShowcaseSections: React.FC = () => {
             <div className="space-y-2.5">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-500/20 to-rose-500/20 border border-amber-400/30 px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-amber-300">
                 <MessageSquareQuote className="h-3.5 w-3.5" />
-                Verified Client Reviews
+                Verified Client Reviews • Auto-Play
               </span>
               <h2 className="font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
                 Loved by{' '}
@@ -397,8 +390,8 @@ export const HomeShowcaseSections: React.FC = () => {
                 </span>
               </h2>
               <p className="max-w-2xl text-xs sm:text-sm text-slate-300">
-                Swipe or use the arrows to browse real feedback from verified
-                events booked through StarClinch.
+                Real stories from verified events booked on StarClinch — sliding
+                automatically every few seconds.
               </p>
             </div>
 
@@ -450,79 +443,101 @@ export const HomeShowcaseSections: React.FC = () => {
             </div>
           </div>
 
-          {/* Active Slider Cards (2 side-by-side on desktop, 1 on mobile) */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {[currentReview, secondaryReview].map((item, idx) => (
-              <article
-                key={`${item.id}-${activeSlide}-${idx}`}
-                className={`relative flex flex-col justify-between rounded-3xl bg-gradient-to-br from-white/12 via-white/6 to-rose-500/10 backdrop-blur-xl border border-white/15 p-6 sm:p-8 shadow-xl animate-fade-up ${
-                  idx === 1 ? 'hidden lg:flex' : 'flex'
-                }`}
-              >
-                <Quote className="pointer-events-none absolute top-5 right-6 h-12 w-12 text-rose-400/15" />
-
-                <div className="space-y-5">
-                  {/* Stars & Verified Metric Pill */}
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div
-                      className="flex items-center gap-1"
-                      aria-label={`Rated ${item.rating} out of 5 stars`}
-                    >
-                      {Array.from({ length: item.rating }, (_, i) => (
-                        <Star
-                          key={i}
-                          className="h-4 w-4 fill-amber-400 text-amber-400"
-                        />
-                      ))}
-                    </div>
-
-                    <span className="rounded-full bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-400/30 px-3 py-1 text-[11px] font-bold text-emerald-300 flex items-center gap-1">
-                      <BadgeCheck className="h-3.5 w-3.5" />
-                      {item.highlightMetric}
-                    </span>
-                  </div>
-
-                  {/* Review Quote */}
-                  <p className="text-sm sm:text-base leading-relaxed text-slate-100 font-medium">
-                    “{item.quote}”
-                  </p>
-                </div>
-
-                <div className="mt-6 pt-5 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  {/* Client Info */}
-                  <div className="flex items-center gap-3.5">
-                    <img
-                      src={item.clientAvatar}
-                      alt={item.clientName}
-                      className="h-12 w-12 rounded-full object-cover border-2 border-rose-400/50"
-                    />
-                    <div>
-                      <h3 className="text-sm font-extrabold text-white">
-                        {item.clientName}
-                      </h3>
-                      <p className="text-xs text-slate-300">{item.clientRole}</p>
-                      <span className="inline-block text-[11px] font-semibold text-rose-300 mt-0.5">
-                        {item.eventType} • {item.eventCity}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Booked Artist Pill */}
-                  <Link
-                    to={`/artists/${item.artistId}`}
-                    className="inline-flex items-center gap-1.5 self-start sm:self-center rounded-2xl bg-gradient-to-r from-rose-500/25 to-purple-500/25 border border-rose-400/35 px-3.5 py-2 text-xs font-bold text-white hover:from-rose-500 hover:to-pink-600 transition-all"
+          {/* Smooth Horizontal Sliding Track */}
+          <div className="overflow-hidden rounded-3xl">
+            <div
+              className="flex transition-transform duration-700 ease-in-out"
+              style={{ transform: `translateX(-${activeSlide * 100}%)` }}
+            >
+              {FEATURED_TESTIMONIALS.map((item, idx) => {
+                const partnerItem =
+                  FEATURED_TESTIMONIALS[(idx + 1) % totalSlides];
+                return (
+                  <div
+                    key={item.id}
+                    className="w-full shrink-0 grid grid-cols-1 lg:grid-cols-2 gap-6 px-0.5"
                   >
-                    <span>Booked: {item.artistName}</span>
-                    <ArrowUpRight className="h-3.5 w-3.5" />
-                  </Link>
-                </div>
-              </article>
-            ))}
+                    {[item, partnerItem].map((card, cardIdx) => (
+                      <article
+                        key={`${card.id}-${cardIdx}`}
+                        className={`relative flex flex-col justify-between rounded-3xl bg-gradient-to-br from-white/15 via-white/5 to-rose-500/15 backdrop-blur-xl border border-white/15 p-6 sm:p-8 shadow-xl ${
+                          cardIdx === 1 ? 'hidden lg:flex' : 'flex'
+                        }`}
+                      >
+                        <Quote className="pointer-events-none absolute top-5 right-6 h-12 w-12 text-rose-400/15" />
+
+                        <div className="space-y-5">
+                          {/* Stars & Verified Metric Pill */}
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div
+                              className="flex items-center gap-1"
+                              aria-label={`Rated ${card.rating} out of 5 stars`}
+                            >
+                              {Array.from({ length: card.rating }, (_, i) => (
+                                <Star
+                                  key={i}
+                                  className="h-4 w-4 fill-amber-400 text-amber-400"
+                                />
+                              ))}
+                            </div>
+
+                            <span className="rounded-full bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-400/30 px-3 py-1 text-[11px] font-bold text-emerald-300 flex items-center gap-1">
+                              <BadgeCheck className="h-3.5 w-3.5" />
+                              {card.highlightMetric}
+                            </span>
+                          </div>
+
+                          {/* Review Quote */}
+                          <p className="text-sm sm:text-base leading-relaxed text-slate-100 font-medium">
+                            “{card.quote}”
+                          </p>
+                        </div>
+
+                        <div className="mt-6 pt-5 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                          {/* Client Info */}
+                          <div className="flex items-center gap-3.5">
+                            <img
+                              src={card.clientAvatar}
+                              alt={card.clientName}
+                              className="h-12 w-12 rounded-full object-cover border-2 border-rose-400/50"
+                            />
+                            <div>
+                              <h3 className="text-sm font-extrabold text-white">
+                                {card.clientName}
+                              </h3>
+                              <p className="text-xs text-slate-300">
+                                {card.clientRole}
+                              </p>
+                              <span className="inline-block text-[11px] font-semibold text-rose-300 mt-0.5">
+                                {card.eventType} • {card.eventCity}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Booked Artist Pill */}
+                          <Link
+                            to={`/artists/${card.artistId}`}
+                            className="inline-flex items-center gap-1.5 self-start sm:self-center rounded-2xl bg-gradient-to-r from-rose-500/25 to-purple-500/25 border border-rose-400/35 px-3.5 py-2 text-xs font-bold text-white hover:from-rose-500 hover:to-pink-600 transition-all"
+                          >
+                            <span>Booked: {card.artistName}</span>
+                            <ArrowUpRight className="h-3.5 w-3.5" />
+                          </Link>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           {/* Slider Pagination Dots & Slide Counter */}
           <div className="flex items-center justify-between pt-2">
-            <div className="flex items-center gap-2" role="tablist" aria-label="Select review slide">
+            <div
+              className="flex items-center gap-2"
+              role="tablist"
+              aria-label="Select review slide"
+            >
               {FEATURED_TESTIMONIALS.map((item, index) => {
                 const isActive = index === activeSlide;
                 return (
@@ -533,9 +548,9 @@ export const HomeShowcaseSections: React.FC = () => {
                     aria-selected={isActive}
                     aria-label={`Go to review ${index + 1} by ${item.clientName}`}
                     onClick={() => setActiveSlide(index)}
-                    className={`h-2.5 rounded-full transition-all cursor-pointer ${
+                    className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
                       isActive
-                        ? 'w-8 bg-gradient-to-r from-rose-400 to-amber-400'
+                        ? 'w-9 bg-gradient-to-r from-rose-400 to-amber-400'
                         : 'w-2.5 bg-white/25 hover:bg-white/50'
                     }`}
                   />
@@ -544,7 +559,7 @@ export const HomeShowcaseSections: React.FC = () => {
             </div>
 
             <span className="text-xs font-bold text-slate-300">
-              Review {activeSlide + 1} of {totalSlides}
+              Slide {activeSlide + 1} of {totalSlides}
             </span>
           </div>
         </div>
