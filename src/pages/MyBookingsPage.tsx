@@ -11,6 +11,7 @@ import {
   Compass,
   Database,
   Mail,
+  MailCheck,
   MapPin,
   Phone,
   RotateCcw,
@@ -19,6 +20,7 @@ import {
   Users,
 } from 'lucide-react';
 import { CancelBookingModal } from '../components/dashboard/CancelBookingModal';
+import { ConfirmationEmailModal } from '../components/dashboard/ConfirmationEmailModal';
 import { EditBookingDateModal } from '../components/dashboard/EditBookingDateModal';
 import { useBookingStore } from '../store/useBookingStore';
 import { Booking, BookingStatus } from '../types';
@@ -36,6 +38,9 @@ export const MyBookingsPage: React.FC = () => {
   const [bookingToCancel, setBookingToCancel] = useState<Booking | null>(null);
   const [bookingToReschedule, setBookingToReschedule] =
     useState<Booking | null>(null);
+  const [emailModalBooking, setEmailModalBooking] = useState<Booking | null>(
+    null
+  );
   const [feedbackBanner, setFeedbackBanner] = useState<string | null>(null);
 
   const stats = useMemo(() => {
@@ -340,6 +345,21 @@ export const MyBookingsPage: React.FC = () => {
                       <Phone className="h-3.5 w-3.5" />
                       <span>{booking.contact.phone}</span>
                     </div>
+                    {isPending && (
+                      <p className="text-[11px] font-medium text-amber-600 dark:text-amber-400 pt-1 border-t border-slate-200/60 dark:border-slate-800">
+                        ⏳ Confirmation message will be sent to{' '}
+                        <strong>{booking.contact.email}</strong> once artist confirms.
+                      </p>
+                    )}
+                    {isConfirmed && (
+                      <p className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 pt-1 border-t border-slate-200/60 dark:border-slate-800 flex items-center gap-1">
+                        <MailCheck className="h-3.5 w-3.5 shrink-0" />
+                        <span>
+                          Confirmation email sent to{' '}
+                          <strong>{booking.contact.email}</strong>
+                        </span>
+                      </p>
+                    )}
                     {booking.venueNotes && (
                       <p className="text-[11px] text-slate-500 italic pt-1 border-t border-slate-200/60 dark:border-slate-800">
                         “{booking.venueNotes}”
@@ -378,22 +398,37 @@ export const MyBookingsPage: React.FC = () => {
                         </button>
                       )}
 
-                      {/* Simulate Artist Confirmation (Pending -> Confirmed) */}
+                      {/* Simulate Artist Confirmation (Pending -> Confirmed + Send Email to Client Email ID) */}
                       {isPending && (
                         <button
                           type="button"
                           disabled={isMutating}
                           onClick={async () => {
-                            await confirmBookingStatus(booking.id);
+                            const confirmed = await confirmBookingStatus(
+                              booking.id
+                            );
+                            setEmailModalBooking(confirmed);
                             showToast(
-                              `Booking ${booking.referenceCode} marked as Confirmed!`
+                              `Artist confirmed ${confirmed.referenceCode}! Confirmation message sent to ${confirmed.contact.email}.`
                             );
                           }}
                           className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 transition-colors cursor-pointer"
-                          title="Simulate artist accepting the pending request"
+                          title={`Simulate artist confirming request and sending email to ${booking.contact.email}`}
                         >
-                          <CheckCircle2 className="h-3.5 w-3.5" />
-                          Mark Confirmed
+                          <MailCheck className="h-3.5 w-3.5" />
+                          Artist Confirm &amp; Send Email
+                        </button>
+                      )}
+
+                      {/* View Sent Confirmation Email for Confirmed Bookings */}
+                      {isConfirmed && (
+                        <button
+                          type="button"
+                          onClick={() => setEmailModalBooking(booking)}
+                          className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 transition-colors cursor-pointer"
+                        >
+                          <MailCheck className="h-3.5 w-3.5" />
+                          View Email Message
                         </button>
                       )}
 
@@ -450,6 +485,12 @@ export const MyBookingsPage: React.FC = () => {
             )} (Updated Total: ${formatINR(updated.priceBreakdown.totalPrice)}).`
           );
         }}
+      />
+
+      {/* Confirmation Email Sent Popup Modal */}
+      <ConfirmationEmailModal
+        booking={emailModalBooking}
+        onClose={() => setEmailModalBooking(null)}
       />
     </div>
   );

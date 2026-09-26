@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   Loader2,
   Mail,
+  MailCheck,
   MapPin,
   Phone,
   RefreshCw,
@@ -31,6 +32,7 @@ import {
   validateContactDetails,
   validateEventDetails,
 } from '../../utils/validation';
+import { ConfirmationEmailModal } from '../dashboard/ConfirmationEmailModal';
 
 interface BookingWizardModalProps {
   isOpen: boolean;
@@ -56,9 +58,11 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
   const navigate = useNavigate();
   const bookings = useBookingStore((s) => s.bookings);
   const createBooking = useBookingStore((s) => s.createBooking);
+  const confirmBookingStatus = useBookingStore((s) => s.confirmBookingStatus);
   const isMutating = useBookingStore((s) => s.isMutating);
 
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(1); // Step 4 = Confirmed Success State
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1); // Step 4 = Request Submitted Popup State
+  const [emailModalBooking, setEmailModalBooking] = useState<Booking | null>(null);
 
   // Step 1 State
   const [eventData, setEventData] = useState<Step1EventData>({
@@ -903,12 +907,17 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
           )}
 
           {/* ================================================================
-              STEP 4: SUCCESS & IMMEDIATE CALENDAR LOCK CONFIRMATION
+              STEP 4: POPUP MESSAGE — YOUR REQUEST IS SUBMITTED & EMAIL FLOW
           ================================================================ */}
           {step === 4 && confirmedBooking && (
-            <div className="py-4 text-center space-y-5">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-emerald-500/15 text-emerald-500 shadow-inner">
-                <CheckCircle2 className="h-9 w-9" />
+            <div className="py-3 text-center space-y-5">
+              {/* Top Popup Alert Pill */}
+              <div
+                role="alert"
+                className="mx-auto max-w-lg rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-xs sm:text-sm font-bold text-emerald-700 dark:text-emerald-300 flex items-center justify-center gap-2 shadow-sm"
+              >
+                <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
+                <span>Popup Alert: Your Booking Request Has Been Submitted!</span>
               </div>
 
               <div className="space-y-1.5">
@@ -917,21 +926,112 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
                   Reference ID: {confirmedBooking.referenceCode}
                 </span>
                 <h3 className="font-display text-2xl font-extrabold text-slate-900 dark:text-white">
-                  Date Locked for {artist.name}!
+                  Your Request is Submitted to {artist.name}!
                 </h3>
                 <p className="mx-auto max-w-md text-xs sm:text-sm text-slate-600 dark:text-slate-300">
-                  Your booking request for{' '}
-                  <strong>{formatFullDate(confirmedBooking.eventDate)}</strong> has
-                  been recorded and the artist’s availability calendar has been
-                  updated immediately to prevent double-booking.
+                  We have locked{' '}
+                  <strong>{formatFullDate(confirmedBooking.eventDate)}</strong> on{' '}
+                  {artist.name}’s calendar and sent your request for artist
+                  confirmation.
                 </p>
               </div>
 
-              <div className="mx-auto max-w-md rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-4 text-left text-xs space-y-1.5">
+              {/* Email Notification Promise Box */}
+              <div className="mx-auto max-w-lg rounded-2xl border border-rose-500/30 bg-rose-500/5 p-4 text-left text-xs space-y-2">
+                <div className="flex items-start gap-2.5">
+                  <MailCheck className="h-5 w-5 text-rose-500 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="font-extrabold text-slate-900 dark:text-white text-sm">
+                      {confirmedBooking.status === 'Confirmed'
+                        ? `Artist Confirmed! Email Sent to ${confirmedBooking.contact.email}`
+                        : `Confirmation Email Will Be Sent to: ${confirmedBooking.contact.email}`}
+                    </p>
+                    <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
+                      {confirmedBooking.status === 'Confirmed' ? (
+                        <>
+                          <strong>{artist.name}</strong> has confirmed your booking
+                          request! A confirmation message with your full event
+                          details has been dispatched to{' '}
+                          <strong className="text-rose-500">
+                            {confirmedBooking.contact.email}
+                          </strong>
+                          .
+                        </>
+                      ) : (
+                        <>
+                          Once <strong>{artist.name}</strong> confirms your booking
+                          request, you will immediately receive a confirmation
+                          message on your registered email ID:{' '}
+                          <strong className="text-rose-500">
+                            {confirmedBooking.contact.email}
+                          </strong>
+                          .
+                        </>
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Simulate Artist Confirming Right Now */}
+                <div className="pt-2 flex flex-wrap items-center gap-2">
+                  {confirmedBooking.status === 'Pending' ? (
+                    <button
+                      type="button"
+                      disabled={isMutating}
+                      onClick={async () => {
+                        const updated = await confirmBookingStatus(
+                          confirmedBooking.id
+                        );
+                        setConfirmedBooking(updated);
+                        setEmailModalBooking(updated);
+                      }}
+                      className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-extrabold text-white shadow-md shadow-emerald-600/20 hover:bg-emerald-500 transition-colors cursor-pointer disabled:opacity-50"
+                    >
+                      {isMutating ? (
+                        <>
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          <span>Artist Confirming &amp; Sending Email...</span>
+                        </>
+                      ) : (
+                        <>
+                          <MailCheck className="h-3.5 w-3.5" />
+                          <span>
+                            Simulate Artist Confirming Request → Send Email to{' '}
+                            {confirmedBooking.contact.email}
+                          </span>
+                        </>
+                      )}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setEmailModalBooking(confirmedBooking)}
+                      className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-extrabold text-white shadow-md hover:bg-emerald-500 transition-colors cursor-pointer"
+                    >
+                      <MailCheck className="h-3.5 w-3.5" />
+                      <span>
+                        View Confirmation Message Sent to{' '}
+                        {confirmedBooking.contact.email}
+                      </span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Summary Card */}
+              <div className="mx-auto max-w-lg rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-4 text-left text-xs space-y-1.5">
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Status:</span>
-                  <span className="font-bold text-amber-500">
-                    {confirmedBooking.status} (Editable in Dashboard)
+                  <span className="text-slate-500">Current Booking Status:</span>
+                  <span
+                    className={`font-extrabold ${
+                      confirmedBooking.status === 'Confirmed'
+                        ? 'text-emerald-500'
+                        : 'text-amber-500'
+                    }`}
+                  >
+                    {confirmedBooking.status === 'Confirmed'
+                      ? '✓ Confirmed by Artist (Email Sent)'
+                      : 'Pending Artist Confirmation'}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -941,9 +1041,9 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Client Contact:</span>
-                  <span className="font-semibold text-slate-900 dark:text-white">
-                    {confirmedBooking.contact.fullName} ({confirmedBooking.contact.email})
+                  <span className="text-slate-500">Registered Email ID:</span>
+                  <span className="font-bold text-rose-500">
+                    {confirmedBooking.contact.email}
                   </span>
                 </div>
                 <div className="flex justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5 font-extrabold text-slate-900 dark:text-white">
@@ -954,7 +1054,7 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
                 <button
                   type="button"
                   onClick={() => {
@@ -979,6 +1079,12 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
           )}
         </div>
       </div>
+
+      {/* Confirmation Email Sent Popup Modal */}
+      <ConfirmationEmailModal
+        booking={emailModalBooking}
+        onClose={() => setEmailModalBooking(null)}
+      />
     </div>
   );
 };

@@ -37,7 +37,7 @@ interface BookingStoreState {
     bookingId: string,
     reason?: string
   ) => Promise<void>;
-  confirmBookingStatus: (bookingId: string) => Promise<void>;
+  confirmBookingStatus: (bookingId: string) => Promise<Booking>;
   resetDemoBookings: () => void;
 }
 
@@ -358,26 +358,32 @@ export const useBookingStore = create<BookingStoreState>()(
         await delay(500);
 
         const target = get().bookings.find((b) => b.id === bookingId);
+        if (!target) {
+          set({ isMutating: false });
+          throw new Error('Booking not found.');
+        }
+
+        const confirmedBooking: Booking = {
+          ...target,
+          status: 'Confirmed',
+          updatedAt: new Date().toISOString(),
+        };
+
         set((state) => ({
           bookings: state.bookings.map((b) =>
-            b.id === bookingId
-              ? {
-                  ...b,
-                  status: 'Confirmed',
-                  updatedAt: new Date().toISOString(),
-                }
-              : b
+            b.id === bookingId ? confirmedBooking : b
           ),
           isMutating: false,
         }));
 
-        if (target) {
-          logAnalyticsEvent('booking_status_confirm', {
-            bookingId,
-            referenceCode: target.referenceCode,
-            eventDate: target.eventDate,
-          });
-        }
+        logAnalyticsEvent('booking_status_confirm', {
+          bookingId,
+          referenceCode: target.referenceCode,
+          eventDate: target.eventDate,
+          confirmationEmailSentTo: target.contact.email,
+        });
+
+        return confirmedBooking;
       },
 
       resetDemoBookings: () => {
