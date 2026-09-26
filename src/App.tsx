@@ -5,6 +5,7 @@ import { Footer } from './components/layout/Footer';
 import { Navbar } from './components/layout/Navbar';
 import { ArtistListingPage } from './pages/ArtistListingPage';
 import { ArtistProfilePage } from './pages/ArtistProfilePage';
+import { BookingSuccessPage } from './pages/BookingSuccessPage';
 import { MyBookingsPage } from './pages/MyBookingsPage';
 import { useThemeStore } from './store/useThemeStore';
 
@@ -28,6 +29,10 @@ export const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<ArtistListingPage />} />
             <Route path="/artists/:id" element={<ArtistProfilePage />} />
+            <Route
+              path="/booking-success/:bookingId"
+              element={<BookingSuccessPage />}
+            />
             <Route path="/bookings" element={<MyBookingsPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
