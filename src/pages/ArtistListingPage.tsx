@@ -156,45 +156,45 @@ export const ArtistListingPage: React.FC = () => {
   }, [loadCatalog, simulateErrorNext]);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
-      {/* Hero Banner */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-950 to-rose-950 p-6 sm:p-10 text-white shadow-2xl border border-white/10">
-        <div className="pointer-events-none absolute -top-24 -right-24 h-80 w-80 rounded-full bg-rose-500/20 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-purple-600/20 blur-3xl" />
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-10">
+      {/* Hero Banner with Animated Gradient Headings */}
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-purple-950/90 to-rose-950 p-6 sm:p-10 text-white shadow-2xl border border-white/10">
+        <div className="pointer-events-none absolute -top-24 -right-24 h-80 w-80 rounded-full bg-rose-500/25 blur-3xl animate-pulse-glow" />
+        <div className="pointer-events-none absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-purple-600/25 blur-3xl animate-pulse-glow" />
 
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-          <div className="max-w-2xl space-y-3">
-            <div className="inline-flex items-center gap-2 rounded-full bg-rose-500/15 border border-rose-500/30 px-3.5 py-1 text-xs font-bold text-rose-300">
-              <Sparkles className="h-3.5 w-3.5 text-rose-400" />
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 animate-fade-up">
+          <div className="max-w-2xl space-y-3.5">
+            <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-rose-500/20 via-purple-500/20 to-amber-500/20 border border-rose-500/30 px-3.5 py-1 text-xs font-bold text-rose-200">
+              <Sparkles className="h-3.5 w-3.5 text-amber-300 animate-spin" style={{ animationDuration: '6s' }} />
               <span>India’s #1 Live Entertainment Booking Marketplace</span>
             </div>
 
             <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight">
               Book Extraordinary{' '}
-              <span className="bg-gradient-to-r from-rose-400 via-pink-400 to-amber-300 bg-clip-text text-transparent">
-                Live Artists
+              <span className="animate-gradient-text">
+                Live Artists &amp; Performers
               </span>{' '}
               for Every Stage
             </h1>
 
-            <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+            <p className="text-sm sm:text-base text-slate-200/90 leading-relaxed">
               Browse 32+ verified singers, live bands, DJs, stand-up comedians, and
               choreographers across 9 Indian cities. Check real-time calendar
               availability, calculate dynamic event pricing, and lock your date in minutes.
             </p>
           </div>
 
-          {/* Quick Stats Cards */}
+          {/* Quick Stats Cards with Gradient Borders */}
           <div className="grid grid-cols-3 gap-3 sm:gap-4 shrink-0">
-            <div className="rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 p-3.5 text-center">
-              <span className="block font-display text-2xl font-extrabold text-white">
+            <div className="rounded-2xl bg-gradient-to-b from-white/10 to-white/5 backdrop-blur-md border border-white/15 p-3.5 text-center">
+              <span className="block font-display text-2xl font-extrabold animate-gradient-text">
                 32+
               </span>
               <span className="text-[11px] font-medium text-slate-300">
                 Verified Acts
               </span>
             </div>
-            <div className="rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 p-3.5 text-center">
+            <div className="rounded-2xl bg-gradient-to-b from-white/10 to-white/5 backdrop-blur-md border border-white/15 p-3.5 text-center">
               <span className="block font-display text-2xl font-extrabold text-rose-400">
                 8
               </span>
@@ -202,7 +202,7 @@ export const ArtistListingPage: React.FC = () => {
                 Categories
               </span>
             </div>
-            <div className="rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 p-3.5 text-center">
+            <div className="rounded-2xl bg-gradient-to-b from-white/10 to-white/5 backdrop-blur-md border border-white/15 p-3.5 text-center">
               <span className="block font-display text-2xl font-extrabold text-amber-400">
                 4.8★
               </span>
@@ -213,6 +213,24 @@ export const ArtistListingPage: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Animated Section Heading for Catalog */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 animate-fade-up">
+        <div>
+          <span className="text-xs font-extrabold uppercase tracking-widest text-rose-500">
+            Curated Roster
+          </span>
+          <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
+            Explore Verified{' '}
+            <span className="animate-gradient-heading">
+              Stage Talent
+            </span>
+          </h2>
+        </div>
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+          Filter by category, city, budget, or exact event date below
+        </p>
+      </div>
 
       {/* Combinable Search & Filter Panel */}
       <ArtistFilters
