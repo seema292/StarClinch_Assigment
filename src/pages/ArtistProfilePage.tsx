@@ -461,7 +461,10 @@ export const ArtistProfilePage: React.FC = () => {
       {/* Multi-Step Booking Flow Modal */}
       <BookingWizardModal
         isOpen={wizardOpen}
-        onClose={() => setWizardOpen(false)}
+        onClose={() => {
+          setWizardOpen(false);
+          setSelectedDate('');
+        }}
         artist={artist}
         initialDate={selectedDate}
         initialEventType={eventType}
@@ -469,7 +472,6 @@ export const ArtistProfilePage: React.FC = () => {
         initialAudienceSize={audienceSize}
         onBookingCreated={(created) => {
           setRecentConfirmedBooking(created);
-          setSelectedDate('');
         }}
       />
     </div>

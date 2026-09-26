@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   AlertCircle,
@@ -72,6 +72,7 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
   const [emailModalBooking, setEmailModalBooking] = useState<Booking | null>(
     null
   );
+  const wasOpenRef = useRef(false);
 
   // Step 1 State
   const [eventData, setEventData] = useState<Step1EventData>({
@@ -105,9 +106,10 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
     null
   );
 
-  // Sync props when modal opens
+  // Sync props ONLY when modal transitions from closed -> open
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !wasOpenRef.current) {
+      wasOpenRef.current = true;
       setStep(1);
       setEventData({
         eventDate: initialDate,
@@ -120,6 +122,8 @@ export const BookingWizardModal: React.FC<BookingWizardModalProps> = ({
       setStep2Errors({});
       setSubmitError(null);
       setConfirmedBooking(null);
+    } else if (!isOpen) {
+      wasOpenRef.current = false;
     }
   }, [
     isOpen,
